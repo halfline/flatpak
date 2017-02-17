@@ -127,7 +127,7 @@ export PKG_CONFIG_PATH=$ROOT/lib/pkgconfig
  %configure --with-dwarf-header=%{_includedir}/libdwarf --with-priv-mode=none \
             --enable-docbook-docs --disable-introspection $CONFIGFLAGS)
 %make_build V=1
-
+sed -i s/ostree-1// %{name}.pc
 
 %install
 %make_install
@@ -138,7 +138,6 @@ install -d %{buildroot}%{_localstatedir}/lib/flatpak
 install -d %{buildroot}%{_sysconfdir}/flatpak/remotes.d
 rm -f %{buildroot}%{_libdir}/libflatpak.la
 %find_lang %{name}
-
 
 %post
 # Create an (empty) system-wide repo.
