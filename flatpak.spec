@@ -1,5 +1,4 @@
-%global bubblewrap_version 0.1.5
-%global ostree_version 2016.14
+%global ostree_version 2017.2
 
 Name:           flatpak
 Version:        0.8.3
@@ -10,6 +9,7 @@ Group:          Development/Tools
 License:        LGPLv2+
 URL:            http://flatpak.org/
 Source0:        https://github.com/flatpak/flatpak/releases/download/%{version}/%{name}-%{version}.tar.xz
+Source1:        https://github.com/ostreedev/ostree/releases/download/v%{ostree_version}/libostree-%{ostree_version}.tar.xz
 
 BuildRequires:  pkgconfig(fuse)
 BuildRequires:  pkgconfig(gio-unix-2.0)
@@ -18,30 +18,24 @@ BuildRequires:  pkgconfig(json-glib-1.0)
 BuildRequires:  pkgconfig(libarchive) >= 2.8.0
 BuildRequires:  pkgconfig(libelf) >= 0.8.12
 BuildRequires:  pkgconfig(libsoup-2.4)
-BuildRequires:  pkgconfig(ostree-1) >= %{ostree_version}
 BuildRequires:  pkgconfig(polkit-gobject-1)
 BuildRequires:  pkgconfig(libseccomp)
+BuildRequires:  pkgconfig(liblzma)
 BuildRequires:  pkgconfig(xau)
-BuildRequires:  bubblewrap >= %{bubblewrap_version}
+BuildRequires:  bison
 BuildRequires:  docbook-dtds
 BuildRequires:  docbook-style-xsl
 BuildRequires:  intltool
 BuildRequires:  libattr-devel
 BuildRequires:  libcap-devel
 BuildRequires:  libdwarf-devel
+BuildRequires:  gpgme-devel
 BuildRequires:  systemd
 BuildRequires:  /usr/bin/xmlto
 BuildRequires:  /usr/bin/xsltproc
 
 # Needed for the document portal.
 Requires:       /usr/bin/fusermount
-
-Requires:       bubblewrap >= %{bubblewrap_version}
-Requires:       ostree%{?_isa} >= %{ostree_version}
-
-# Remove in F27.
-Provides:       xdg-app = %{version}-%{release}
-Obsoletes:      xdg-app <= 0.5.2-2
 
 %description
 flatpak is a system for building, distributing and running sandboxed desktop
@@ -84,8 +78,6 @@ This package contains the pkg-config file and development headers for %{name}.
 Summary:        Libraries for %{name}
 Group:          Development/Libraries
 License:        LGPLv2+
-Requires:       bubblewrap >= %{bubblewrap_version}
-Requires:       ostree%{?_isa} >= %{ostree_version}
 # Remove in F27.
 Provides:       xdg-app-libs%{?_isa} = %{version}-%{release}
 Obsoletes:      xdg-app-libs <= 0.5.2-2
@@ -95,19 +87,51 @@ This package contains libflatpak.
 
 
 %prep
-%setup -q
-
+%setup -q -a 1
 
 %build
+cd libostree-%{ostree_version}
+ %configure \
+           --disable-silent-rules \
+           --disable-gtk-doc \
+           --disable-man \
+           --disable-rofiles-fuse \
+           --without-libmount \
+           --disable-introspection \
+           --without-selinux \
+           --without-dracut \
+           LIBS=-lgpg-error
+%make_build V=1
+cd ..
+
+mkdir -p root/lib/pkgconfig
+ROOT=`pwd`/root
+
+cp libostree-%{ostree_version}/.libs/libostree-1.so.1.0.0 root/lib/libostree-flatpak-1.so.1.0.0
+ln -s libostree-flatpak-1.so.1.0.0 root/lib/libostree-flatpak-1.so.1
+ln -s libostree-flatpak-1.so.1.0.0 root/lib/libostree-flatpak-1.so
+ln -s `pwd`/libostree-%{ostree_version}/src/libostree root/include
+
+cat > root/lib/pkgconfig/ostree-1.pc <<EOF
+Name: OSTree
+Description: Git for operating system binaries
+Version: %{ostree_version}
+Requires: gio-unix-2.0
+Libs: -L$ROOT/lib -lostree-flatpak-1
+Cflags: -I$ROOT/include
+EOF
+
+export PKG_CONFIG_PATH=$ROOT/lib/pkgconfig
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--enable-gtk-doc; fi;
  # User namespace support is sufficient.
  %configure --with-dwarf-header=%{_includedir}/libdwarf --with-priv-mode=none \
-            --with-system-bubblewrap --enable-docbook-docs $CONFIGFLAGS)
+            --enable-docbook-docs --disable-introspection $CONFIGFLAGS)
 %make_build V=1
 
 
 %install
 %make_install
+install root/lib/libostree-flatpak-1.so.1.0.0 %{buildroot}%{_libdir}
 install -pm 644 NEWS README.md %{buildroot}/%{_pkgdocdir}
 # The system repo is not installed by the flatpak build system.
 install -d %{buildroot}%{_localstatedir}/lib/flatpak
@@ -150,6 +174,9 @@ flatpak remote-list --system &> /dev/null || :
 %{_libexecdir}/flatpak-system-helper
 %{_libexecdir}/xdg-document-portal
 %{_libexecdir}/xdg-permission-store
+%attr(04755,root,root) %{_libexecdir}/flatpak-bwrap
+%{_libdir}/libostree-flatpak-1.so.1.0.0
+
 %dir %{_localstatedir}/lib/flatpak
 %{_mandir}/man1/%{name}*.1*
 %{_mandir}/man5/%{name}-metadata.5*
@@ -171,7 +198,6 @@ flatpak remote-list --system &> /dev/null || :
 %{_mandir}/man1/flatpak-builder.1*
 
 %files devel
-%{_datadir}/gir-1.0/Flatpak-1.0.gir
 %{_datadir}/gtk-doc/
 %{_includedir}/%{name}/
 %{_libdir}/libflatpak.so
@@ -179,11 +205,14 @@ flatpak remote-list --system &> /dev/null || :
 
 %files libs
 %license COPYING
-%{_libdir}/girepository-1.0/Flatpak-1.0.typelib
 %{_libdir}/libflatpak.so.*
 
 
 %changelog
+* Fri Feb 17 2017 Alexander Larsson <alexl@redhat.com> - 0.8.3-1
+- Bundle ostree and bubblewrap
+- Resolves: #1391018
+
 * Tue Feb 14 2017 Kalev Lember <klember@redhat.com> - 0.8.3-1
 - Update to 0.8.3
 
