@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -10,6 +10,9 @@ License:        LGPLv2+
 URL:            http://flatpak.org/
 Source0:        https://github.com/flatpak/flatpak/releases/download/%{version}/%{name}-%{version}.tar.xz
 Source1:        https://github.com/ostreedev/ostree/releases/download/v%{ostree_version}/libostree-%{ostree_version}.tar.xz
+
+# There is no libseccomp on ppc, so lets not ship a broken sandbox
+ExcludeArch: ppc
 
 BuildRequires:  pkgconfig(fuse)
 BuildRequires:  pkgconfig(gio-unix-2.0)
@@ -209,6 +212,10 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Fri Feb 17 2017 Alexander Larsson <alexl@redhat.com> - 0.8.3-3
+- ExcludeArch 32bit ppc which doesn't have libseccomp
+- Resolves: #1391018
+
 * Fri Feb 17 2017 Alexander Larsson <alexl@redhat.com> - 0.8.3-2
 - Added pkgconfig(e2p) build dependency
 - Resolves: #1391018
