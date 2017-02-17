@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -22,6 +22,7 @@ BuildRequires:  pkgconfig(polkit-gobject-1)
 BuildRequires:  pkgconfig(libseccomp)
 BuildRequires:  pkgconfig(liblzma)
 BuildRequires:  pkgconfig(xau)
+BuildRequires:  pkgconfig(e2p)
 BuildRequires:  bison
 BuildRequires:  docbook-dtds
 BuildRequires:  docbook-style-xsl
@@ -208,6 +209,10 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Fri Feb 17 2017 Alexander Larsson <alexl@redhat.com> - 0.8.3-2
+- Added pkgconfig(e2p) build dependency
+- Resolves: #1391018
+
 * Fri Feb 17 2017 Alexander Larsson <alexl@redhat.com> - 0.8.3-1
 - Bundle ostree and bubblewrap
 - Resolves: #1391018
