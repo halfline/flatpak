@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -210,6 +210,9 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Fri Mar 10 2017 David King <dking@redhat.com> - 0.8.4-2
+- Sync bzip2 dependency with Fedora package
+
 * Fri Mar 10 2017 Kalev Lember <klember@redhat.com> - 0.8.4-1
 - Update to 0.8.4
 - Resolves: #1391018
