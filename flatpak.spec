@@ -80,6 +80,8 @@ This package contains the pkg-config file and development headers for %{name}.
 Summary:        Libraries for %{name}
 Group:          Development/Libraries
 License:        LGPLv2+
+# Drop if using an external ostree-libs.
+Requires:       %{name}%{?_isa} = %{version}-%{release}
 # Remove in F27.
 Provides:       xdg-app-libs%{?_isa} = %{version}-%{release}
 Obsoletes:      xdg-app-libs <= 0.5.2-2
@@ -212,6 +214,7 @@ flatpak remote-list --system &> /dev/null || :
 %changelog
 * Fri Mar 10 2017 David King <dking@redhat.com> - 0.8.4-2
 - Sync bzip2 dependency with Fedora package
+- Make the libs subpackage depend on the base package for libostree
 
 * Fri Mar 10 2017 Kalev Lember <klember@redhat.com> - 0.8.4-1
 - Update to 0.8.4
