@@ -48,6 +48,7 @@ Summary:        Build helper for %{name}
 Group:          Development/Tools
 License:        LGPLv2+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       /usr/bin/bzip2
 Requires:       /usr/bin/bzr
 Requires:       /usr/bin/git
 Requires:       /usr/bin/patch
