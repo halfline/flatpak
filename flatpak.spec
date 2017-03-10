@@ -128,8 +128,12 @@ EOF
 export PKG_CONFIG_PATH=$ROOT/lib/pkgconfig
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--enable-gtk-doc; fi;
  # User namespace support is sufficient.
- %configure --with-dwarf-header=%{_includedir}/libdwarf --with-priv-mode=none \
-            --enable-docbook-docs --disable-introspection $CONFIGFLAGS)
+ # Generate consistent IDs between runs to avoid multilib problems.
+ export XMLTO_FLAGS="--stringparam generate.consistent.ids=1"
+ %configure \
+            --with-dwarf-header=%{_includedir}/libdwarf --with-priv-mode=none \
+            --enable-docbook-docs \
+            --disable-introspection $CONFIGFLAGS)
 %make_build V=1
 sed -i s/ostree-1// %{name}.pc
 
@@ -215,6 +219,7 @@ flatpak remote-list --system &> /dev/null || :
 * Fri Mar 10 2017 David King <dking@redhat.com> - 0.8.4-2
 - Sync bzip2 dependency with Fedora package
 - Make the libs subpackage depend on the base package for libostree
+- Fix multilib issues with XML-based documentation
 
 * Fri Mar 10 2017 Kalev Lember <klember@redhat.com> - 0.8.4-1
 - Update to 0.8.4
