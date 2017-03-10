@@ -1,8 +1,8 @@
 %global ostree_version 2017.2
 
 Name:           flatpak
-Version:        0.8.3
-Release:        4%{?dist}
+Version:        0.8.4
+Release:        1%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -210,6 +210,10 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Fri Mar 10 2017 Kalev Lember <klember@redhat.com> - 0.8.4-1
+- Update to 0.8.4
+- Resolves: #1391018
+
 * Wed Feb 22 2017 Kalev Lember <klember@redhat.com> - 0.8.3-4
 - Remove ExcludeArch ppc now that we have libseccomp there
 - Resolves: #1391018
