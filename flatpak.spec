@@ -1,8 +1,8 @@
 %global ostree_version 2017.2
 
 Name:           flatpak
-Version:        0.8.4
-Release:        2%{?dist}
+Version:        0.8.5
+Release:        1%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -216,6 +216,10 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Mon Apr 03 2017 Kalev Lember <klember@redhat.com> - 0.8.5-1
+- Update to 0.8.5
+- Resolves: #1391018
+
 * Fri Mar 10 2017 David King <dking@redhat.com> - 0.8.4-2
 - Sync bzip2 dependency with Fedora package
 - Make the libs subpackage depend on the base package for libostree
