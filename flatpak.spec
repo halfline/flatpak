@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -10,7 +10,7 @@ License:        LGPLv2+
 URL:            http://flatpak.org/
 Source0:        https://github.com/flatpak/flatpak/releases/download/%{version}/%{name}-%{version}.tar.xz
 Source1:        https://github.com/ostreedev/ostree/releases/download/v%{ostree_version}/libostree-%{ostree_version}.tar.xz
-
+Patch0:         ostree-soup-Hold-a-ref-to-the-pending-URI-during-completion.patch
 BuildRequires:  pkgconfig(fuse)
 BuildRequires:  pkgconfig(gio-unix-2.0)
 BuildRequires:  pkgconfig(gobject-introspection-1.0) >= 1.40.0
@@ -92,6 +92,8 @@ This package contains libflatpak.
 
 %prep
 %setup -q -a 1
+cd libostree-%{ostree_version}
+%patch0 -p1
 
 %build
 cd libostree-%{ostree_version}
@@ -216,6 +218,10 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Tue Apr  4 2017 Alexander Larsson <alexl@redhat.com> - 0.8.5-2
+- Add libostree use-after-free patch
+- Resolves: #1391018
+
 * Mon Apr 03 2017 Kalev Lember <klember@redhat.com> - 0.8.5-1
 - Update to 0.8.5
 - Resolves: #1391018
