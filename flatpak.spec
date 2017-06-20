@@ -1,8 +1,8 @@
 %global ostree_version 2017.2
 
 Name:           flatpak
-Version:        0.8.5
-Release:        2%{?dist}
+Version:        0.8.7
+Release:        1%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -218,6 +218,10 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Tue Jun 20 2017 Kalev Lember <klember@redhat.com> - 0.8.7-1
+- Update to 0.8.7
+- Resolves: #1391018
+
 * Tue Apr  4 2017 Alexander Larsson <alexl@redhat.com> - 0.8.5-2
 - Add libostree use-after-free patch
 - Resolves: #1391018
