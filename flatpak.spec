@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.7
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -37,6 +37,21 @@ BuildRequires:  /usr/bin/xsltproc
 
 # Needed for the document portal.
 Requires:       /usr/bin/fusermount
+
+# libostree bundling
+# https://fedoraproject.org/wiki/EPEL:Packaging_Autoprovides_and_Requires_Filtering
+# We're using RPATH to pick up our bundled version
+%filter_from_requires /libostree-1/d
+
+# And ensure we don't add a Provides
+%{?filter_setup:
+%filter_provides_in %{_libdir}/%{name}/.*
+%filter_setup
+}
+# And for now we manually inject this dep; surprisingly the
+# command line doesn't currently link to the public libflatpak
+# library.
+Requires:       %{name}-libs = %{version}-%{release}
 
 %description
 flatpak is a system for building, distributing and running sandboxed desktop
@@ -113,9 +128,8 @@ cd ..
 mkdir -p root/lib/pkgconfig
 ROOT=`pwd`/root
 
-cp libostree-%{ostree_version}/.libs/libostree-1.so.1.0.0 root/lib/libostree-flatpak-1.so.1.0.0
-ln -s libostree-flatpak-1.so.1.0.0 root/lib/libostree-flatpak-1.so.1
-ln -s libostree-flatpak-1.so.1.0.0 root/lib/libostree-flatpak-1.so
+mv libostree-%{ostree_version}/.libs/libostree-1.so* root/lib
+ls -al root/lib/libostree*
 ln -s `pwd`/libostree-%{ostree_version}/src/libostree root/include
 
 cat > root/lib/pkgconfig/ostree-1.pc <<EOF
@@ -123,7 +137,7 @@ Name: OSTree
 Description: Git for operating system binaries
 Version: %{ostree_version}
 Requires: gio-unix-2.0
-Libs: -L$ROOT/lib -lostree-flatpak-1
+Libs: -L$ROOT/lib -Wl,-rpath=%{_libdir}/flatpak -lostree-1
 Cflags: -I$ROOT/include
 EOF
 
@@ -141,7 +155,8 @@ sed -i s/ostree-1// %{name}.pc
 
 %install
 %make_install
-install root/lib/libostree-flatpak-1.so.1.0.0 %{buildroot}%{_libdir}
+install -d %{buildroot}%{_libdir}/flatpak
+mv root/lib/libostree-1.so* %{buildroot}%{_libdir}/flatpak
 # Work around https://bugzilla.redhat.com/show_bug.cgi?id=1392354
 install -d %{buildroot}/%{_pkgdocdir}
 if test -d %{buildroot}/%{_docdir}/%{name}; then
@@ -190,7 +205,6 @@ flatpak remote-list --system &> /dev/null || :
 %{_libexecdir}/xdg-document-portal
 %{_libexecdir}/xdg-permission-store
 %attr(04755,root,root) %{_libexecdir}/flatpak-bwrap
-%{_libdir}/libostree-flatpak-1.so.1.0.0
 
 %dir %{_localstatedir}/lib/flatpak
 %{_mandir}/man1/%{name}*.1*
@@ -220,10 +234,22 @@ flatpak remote-list --system &> /dev/null || :
 
 %files libs
 %license COPYING
+%{_libdir}/flatpak/libostree-1.so*
 %{_libdir}/libflatpak.so.*
 
 
 %changelog
+* Tue Aug 01 2017 Colin Walters <walters@verbum.org> - 0.8.7-3
+- Fix libostree bundling:
+  Ensure we do not Provide or Require libostree.
+  Move the shared library into flatpak-libs so flatpak always
+  depends on it.
+  Keep the shared library filename as libostree, but put it
+  under a private directory.  Renaming the file on disk did not
+  really do much since the dynamic linker and RPM work from the
+  soname.
+  Resolves: #1476905
+
 * Tue Aug 01 2017 Colin Walters <walters@verbum.org> - 0.8.7-2
 - Tweak build to work both with and without BZ#1392354
 
