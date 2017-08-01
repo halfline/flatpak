@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.7
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -142,7 +142,13 @@ sed -i s/ostree-1// %{name}.pc
 %install
 %make_install
 install root/lib/libostree-flatpak-1.so.1.0.0 %{buildroot}%{_libdir}
-install -pm 644 NEWS README.md %{buildroot}/%{_pkgdocdir}
+# Work around https://bugzilla.redhat.com/show_bug.cgi?id=1392354
+install -d %{buildroot}/%{_pkgdocdir}
+if test -d %{buildroot}/%{_docdir}/%{name}; then
+    mv %{buildroot}/%{_docdir}/%{name}/* %{buildroot}/%{_pkgdocdir}
+    rmdir %{buildroot}/%{_docdir}/%{name}/
+fi
+install -t %{buildroot}/%{_pkgdocdir} -pm 644 NEWS README.md
 # The system repo is not installed by the flatpak build system.
 install -d %{buildroot}%{_localstatedir}/lib/flatpak
 install -d %{buildroot}%{_sysconfdir}/flatpak/remotes.d
@@ -218,6 +224,9 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Tue Aug 01 2017 Colin Walters <walters@verbum.org> - 0.8.7-2
+- Tweak build to work both with and without BZ#1392354
+
 * Tue Jun 20 2017 Kalev Lember <klember@redhat.com> - 0.8.7-1
 - Update to 0.8.7
 - Resolves: #1391018
