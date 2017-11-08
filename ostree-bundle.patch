@@ -1,0 +1,37 @@
+Make sure rpath gets added for ostree libs
+
+We bundle ostree in the package, so we need to make sure an rpath
+gets set pointing to our bundled library.
+
+The Makefiles are missing the OSTREE_LIBS (and so the -Wl,-rpath),
+so add them in.
+diff --git a/document-portal/Makefile.am.inc b/document-portal/Makefile.am.inc
+--- a/document-portal/Makefile.am.inc	2017-11-08 16:52:40.135530435 -0500
++++ b/document-portal/Makefile.am.inc	2017-11-08 16:52:53.340379677 -0500
+@@ -34,5 +34,5 @@ xdg_document_portal_SOURCES = \
+ 	document-portal/xdp-fuse.c		\
+ 	$(NULL)
+ 
+-xdg_document_portal_LDADD = $(BASE_LIBS) $(FUSE_LIBS) libflatpak-common.la
++xdg_document_portal_LDADD = $(BASE_LIBS) $(FUSE_LIBS) $(OSTREE_LIBS) libflatpak-common.la
+ xdg_document_portal_CFLAGS = $(BASE_CFLAGS) $(OSTREE_CFLAGS) $(SOUP_CFLAGS) $(JSON_CFLAGS) $(FUSE_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal -I$(srcdir)/permission-store -I$(builddir)/permission-store -DFLATPAK_COMPILATION
+diff --git a/permission-store/Makefile.am.inc b/permission-store/Makefile.am.inc
+--- a/permission-store/Makefile.am.inc	2017-11-09 14:34:13.681220097 -0500
++++ b/permission-store/Makefile.am.inc	2017-11-09 14:34:20.578146811 -0500
+@@ -30,5 +30,5 @@ xdg_permission_store_SOURCES = \
+ 	permission-store/xdg-permission-store.h	\
+ 	$(NULL)
+ 
+-xdg_permission_store_LDADD = $(BASE_LIBS) libflatpak-common.la
++xdg_permission_store_LDADD = $(BASE_LIBS) $(OSTREE_LIBS) libflatpak-common.la
+ xdg_permission_store_CFLAGS = $(BASE_CFLAGS) $(SOUP_CFLAGS) $(JSON_CFLAGS) $(OSTREE_CFLAGS) $(GSYSTEM_CFLAGS) -I$(srcdir)/permission-store -I$(builddir)/permission-store
+diff --git a/session-helper/Makefile.am.inc b/session-helper/Makefile.am.inc
+--- a/session-helper/Makefile.am.inc	2017-11-09 14:34:47.849857022 -0500
++++ b/session-helper/Makefile.am.inc	2017-11-09 14:35:01.377713286 -0500
+@@ -12,5 +12,5 @@ flatpak_session_helper_SOURCES = \
+ 	session-helper/flatpak-session-helper.c	\
+ 	$(NULL)
+ 
+-flatpak_session_helper_LDADD = $(BASE_LIBS) libflatpak-common.la
++flatpak_session_helper_LDADD = $(BASE_LIBS) $(OSTREE_LIBS) libflatpak-common.la
+ flatpak_session_helper_CFLAGS = $(BASE_CFLAGS) $(SOUP_CFLAGS) $(OSTREE_CFLAGS) $(GSYSTEM_CFLAGS) $(JSON_CFLAGS)

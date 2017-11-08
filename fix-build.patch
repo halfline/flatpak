@@ -1,0 +1,46 @@
+libglnx: throw in custom basename implementation
+
+libglnx tries to avoid using a specific implementation of basename by
+doing #undef basename.  This trick doesn't work with glibc anymore
+apparently.
+
+But basename is like 3 lines of code to write, so just write it.
+
+diff --git a/libglnx/glnx-fdio.h b/libglnx/glnx-fdio.h
+--- a/libglnx/glnx-fdio.h	2017-11-08 13:41:49.734931484 -0500
++++ b/libglnx/glnx-fdio.h	2017-11-08 13:45:33.330758205 -0500
+@@ -43,7 +43,14 @@ G_BEGIN_DECLS
+ static inline
+ const char *glnx_basename (const char *path)
+ {
+-  return (basename) (path);
++  gchar *base;
++
++  base = strrchr (path, G_DIR_SEPARATOR);
++
++  if (base)
++    return base + 1;
++
++  return path;
+ }
+ 
+ gboolean
+diff --git a/libostree-2017.2/libglnx/glnx-fdio.h b/libostree-2017.2/libglnx/glnx-fdio.h
+--- a/libostree-2017.2/libglnx/glnx-fdio.h	2017-11-08 13:53:45.655413948 -0500
++++ b/libostree-2017.2/libglnx/glnx-fdio.h	2017-11-08 13:53:57.543285889 -0500
+@@ -43,7 +43,14 @@ G_BEGIN_DECLS
+ static inline
+ const char *glnx_basename (const char *path)
+ {
+-  return (basename) (path);
++  gchar *base;
++
++  base = strrchr (path, G_DIR_SEPARATOR);
++
++  if (base)
++    return base + 1;
++
++  return path;
+ }
+ 
+ gboolean

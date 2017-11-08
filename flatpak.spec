@@ -2,7 +2,7 @@
 
 Name:           flatpak
 Version:        0.8.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Application deployment framework for desktop apps
 
 Group:          Development/Tools
@@ -11,6 +11,9 @@ URL:            http://flatpak.org/
 Source0:        https://github.com/flatpak/flatpak/releases/download/%{version}/%{name}-%{version}.tar.xz
 Source1:        https://github.com/ostreedev/ostree/releases/download/v%{ostree_version}/libostree-%{ostree_version}.tar.xz
 Patch0:         ostree-soup-Hold-a-ref-to-the-pending-URI-during-completion.patch
+Patch1:         no-user-systemd.patch
+Patch2:         fix-build.patch
+Patch3:         ostree-bundle.patch
 BuildRequires:  pkgconfig(fuse)
 BuildRequires:  pkgconfig(gio-unix-2.0)
 BuildRequires:  pkgconfig(gobject-introspection-1.0) >= 1.40.0
@@ -23,6 +26,7 @@ BuildRequires:  pkgconfig(libseccomp)
 BuildRequires:  pkgconfig(liblzma)
 BuildRequires:  pkgconfig(xau)
 BuildRequires:  pkgconfig(e2p)
+BuildRequires:  automake, autoconf, libtool, gettext-devel, gtk-doc
 BuildRequires:  bison
 BuildRequires:  docbook-dtds
 BuildRequires:  docbook-style-xsl
@@ -109,6 +113,11 @@ This package contains libflatpak.
 %setup -q -a 1
 cd libostree-%{ostree_version}
 %patch0 -p1
+cd ..
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+
 
 %build
 cd libostree-%{ostree_version}
@@ -140,7 +149,9 @@ Requires: gio-unix-2.0
 Libs: -L$ROOT/lib -Wl,-rpath=%{_libdir}/flatpak -lostree-1
 Cflags: -I$ROOT/include
 EOF
-
+rm -f configure
+gtkdocize
+autoreconf -f -i -s
 export PKG_CONFIG_PATH=$ROOT/lib/pkgconfig
 (if ! test -x configure; then NOCONFIGURE=1 ./autogen.sh; CONFIGFLAGS=--enable-gtk-doc; fi;
  # User namespace support is sufficient.
@@ -154,6 +165,7 @@ export PKG_CONFIG_PATH=$ROOT/lib/pkgconfig
 sed -i s/ostree-1// %{name}.pc
 
 %install
+mkdir -p %{buildroot}%{_datadir}/gtk-doc/html/flatpak
 %make_install
 install -d %{buildroot}%{_libdir}/flatpak
 mv root/lib/libostree-1.so* %{buildroot}%{_libdir}/flatpak
@@ -239,6 +251,12 @@ flatpak remote-list --system &> /dev/null || :
 
 
 %changelog
+* Fri Nov 10 2017 Ray Strode <rstrode@redhat.com> - 0.8.8-2
+- Fix crasher in xdg-desktop-portal
+  Resolves: #1503579
+- Tweak spec file so it still builds even though we need to
+  autoreconf.
+
 * Wed Nov 01 2017 David King <dking@redhat.com> - 0.8.8-1
 - Update to 0.8.8 (#1500800)
 

@@ -1,0 +1,32 @@
+Drop the SystemdService line in dbus service files
+
+I don't think we can dbus activate systemd services on
+the session bus (we don't have a user bus, and I'm
+pretty sure we don't have systemd --user)
+
+This commit just drops the lines, so dbus can activate on
+its own.
+diff --git a/permission-store/org.freedesktop.impl.portal.PermissionStore.service.in b/permission-store/org.freedesktop.impl.portal.PermissionStore.service.in
+--- a/permission-store/org.freedesktop.impl.portal.PermissionStore.service.in	2017-11-08 13:26:55.759617833 -0500
++++ b/permission-store/org.freedesktop.impl.portal.PermissionStore.service.in	2017-11-08 13:27:00.382567509 -0500
+@@ -1,4 +1,3 @@
+ [D-BUS Service]
+ Name=org.freedesktop.impl.portal.PermissionStore
+ Exec=@libexecdir@/xdg-permission-store
+-SystemdService=xdg-permission-store.service
+diff -up flatpak-0.8.8/document-portal/org.freedesktop.portal.Documents.service.in.no-user-systemd flatpak-0.8.8/document-portal/org.freedesktop.portal.Documents.service.in
+--- flatpak-0.8.8/document-portal/org.freedesktop.portal.Documents.service.in.no-user-systemd	2017-11-08 16:33:31.652110888 -0500
++++ flatpak-0.8.8/document-portal/org.freedesktop.portal.Documents.service.in	2017-11-08 16:33:45.688957745 -0500
+@@ -1,4 +1,3 @@
+ [D-BUS Service]
+ Name=org.freedesktop.portal.Documents
+ Exec=@libexecdir@/xdg-document-portal
+-SystemdService=xdg-document-portal.service
+diff -up flatpak-0.8.8/session-helper/org.freedesktop.Flatpak.service.in.no-user-systemd flatpak-0.8.8/session-helper/org.freedesktop.Flatpak.service.in
+--- flatpak-0.8.8/session-helper/org.freedesktop.Flatpak.service.in.no-user-systemd	2017-11-08 16:33:21.045226761 -0500
++++ flatpak-0.8.8/session-helper/org.freedesktop.Flatpak.service.in	2017-11-08 16:33:38.361037649 -0500
+@@ -1,4 +1,3 @@
+ [D-BUS Service]
+ Name=org.freedesktop.Flatpak
+ Exec=@libexecdir@/flatpak-session-helper
+-SystemdService=flatpak-session-helper.service
